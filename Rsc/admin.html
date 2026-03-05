@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="admin.css">
+    <!-- EmailJS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <title>Admin - Send Notifications</title>
+</head>
+<body>
+    <div class="header">
+        <div class="top-nav">
+            <nav class="top-nav-container">
+                <span style="color: white; font-weight: bold; margin-left: 20px;">ADMIN PANEL</span>
+                <a href="notifications.html" style="color: white; margin-right: 20px; text-decoration: none;">View Live Feed</a>
+            </nav>
+        </div>
+
+        <main class="main-content" style="margin-left: 0; display: flex; justify-content: center;">
+            <div class="notification-container" style="background: white; padding: 30px; border-radius: 12px; margin-top: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 600px; width: 100%;">
+                <h1 style="color: rgb(19, 117, 182);">Post New Notification</h1>
+                <p>Use this to test the appearance on the main page.</p>
+
+                <!-- EmailJS Config Section -->
+                <details style="margin-bottom: 20px; border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px;">
+                    <summary style="cursor: pointer; font-weight: bold; color: rgb(19, 117, 182);">⚙️ EmailJS Configuration (expand to set up)</summary>
+                    <div style="margin-top: 12px;">
+                        <p style="font-size: 13px; color: #555; margin-bottom: 10px;">
+                            1. Create a free account at <a href="https://www.emailjs.com" target="_blank">emailjs.com</a><br>
+                            2. Add an <strong>Email Service</strong> (Gmail, Outlook, etc.)<br>
+                            3. Create an <strong>Email Template</strong> — use these variables in your template:<br>
+                            &nbsp;&nbsp;&nbsp;<code>{{to_email}}</code>, <code>{{category}}</code>, <code>{{subject}}</code>, <code>{{body}}</code>, <code>{{time}}</code><br>
+                            4. Paste your IDs below and click Save.
+                        </p>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label style="display: block; font-weight: bold; font-size: 13px;">Public Key</label>
+                            <input type="text" id="ejs-public-key" placeholder="e.g. aBcDeFgHiJkLmNoP" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; box-sizing: border-box;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label style="display: block; font-weight: bold; font-size: 13px;">Service ID</label>
+                            <input type="text" id="ejs-service-id" placeholder="e.g. service_xxxxxxx" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; box-sizing: border-box;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label style="display: block; font-weight: bold; font-size: 13px;">Template ID</label>
+                            <input type="text" id="ejs-template-id" placeholder="e.g. template_xxxxxxx" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; box-sizing: border-box;">
+                        </div>
+                        <button onclick="saveEmailConfig()" style="background: rgb(19, 117, 182); color: white; border: none; padding: 8px 18px; border-radius: 5px; cursor: pointer; font-size: 13px;">Save Config</button>
+                        <span id="config-saved-msg" style="color: green; font-size: 13px; margin-left: 10px; display: none;">✅ Saved!</span>
+                    </div>
+                </details>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display: block; font-weight: bold;">Category (e.g., 📢 ANNOUNCEMENT)</label>
+                    <input type="text" id="notif-category" placeholder="REGISTRAR" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display: block; font-weight: bold;">Subject</label>
+                    <input type="text" id="notif-subject" placeholder="Enter Subject" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display: block; font-weight: bold;">Message Content</label>
+                    <textarea id="notif-body" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;"></textarea>
+                </div>
+
+                <!-- SMS Config -->
+                <details style="margin-bottom: 20px; border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px;">
+                    <summary style="cursor: pointer; font-weight: bold; color: #28a745;">⚙️ SMS Configuration — Make.com + Semaphore (expand to set up)</summary>
+                    <div style="margin-top: 12px;">
+                        <p style="font-size: 13px; color: #555; margin-bottom: 10px;">
+                            Your Make.com webhook is already pre-filled below. If you ever change it, update it here and click Save.
+                        </p>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label style="display: block; font-weight: bold; font-size: 13px;">Make.com Webhook URL</label>
+                            <input type="text" id="sms-webhook-url" placeholder="https://hook.eu1.make.com/..." style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; box-sizing: border-box;">
+                        </div>
+                        <button onclick="saveSmsConfig()" style="background: #28a745; color: white; border: none; padding: 8px 18px; border-radius: 5px; cursor: pointer; font-size: 13px;">Save Config</button>
+                        <span id="sms-config-saved-msg" style="color: green; font-size: 13px; margin-left: 10px; display: none;">✅ Saved!</span>
+                    </div>
+                </details>
+
+                <!-- Email Recipients -->
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display: block; font-weight: bold;">
+                        📧 Email Recipients
+                        <span style="font-weight: normal; font-size: 12px; color: #888;">(comma-separated — leave blank to skip email)</span>
+                    </label>
+                    <textarea id="notif-recipients" rows="2" placeholder="student1@school.edu, student2@school.edu" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;"></textarea>
+                </div>
+
+                <!-- SMS Recipients -->
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display: block; font-weight: bold;">
+                        📱 SMS Recipients
+                        <span style="font-weight: normal; font-size: 12px; color: #888;">(comma-separated PH numbers e.g. 09171234567)</span>
+                    </label>
+                    <textarea id="notif-phones" rows="2" placeholder="09171234567, 09281234567" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;"></textarea>
+                </div>
+
+                <div id="status-msg" style="display:none; padding: 10px; border-radius: 5px; margin-bottom: 12px; font-weight: bold;"></div>
+
+                <!-- Notifications Page button -->
+                <button onclick="postToPage()" style="background: rgb(19, 117, 182); color: white; border: none; padding: 12px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px; width: 100%; margin-bottom: 10px;">
+                    🔔 Post to Notifications Page
+                </button>
+
+                <!-- Email buttons -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <button onclick="sendEmailOnly()" style="background: #28a745; color: white; border: none; padding: 12px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px;">
+                        📧 Send Email Only
+                    </button>
+                    <button onclick="postAndEmail()" style="background: #6f42c1; color: white; border: none; padding: 12px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px;">
+                        📧 Post + Email
+                    </button>
+                </div>
+
+                <!-- SMS buttons -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <button onclick="sendSmsOnly()" style="background: #fd7e14; color: white; border: none; padding: 12px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px;">
+                        📱 Send SMS Only
+                    </button>
+                    <button onclick="postAndSms()" style="background: #e67300; color: white; border: none; padding: 12px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px;">
+                        📱 Post + SMS
+                    </button>
+                </div>
+
+                <!-- Send everything -->
+                <button onclick="sendAll()" style="background: #343a40; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 10px; font-size: 14px;">
+                    🚀 Post + Email + SMS (All)
+                </button>
+
+                <button onclick="clearAll()" style="background: #dc3545; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; width: 100%; font-size: 14px;">
+                    🗑️ Clear All Tests
+                </button>
+            </div>
+        </main>
+    </div>
+
+<script>
+    const MAKE_WEBHOOK = 'https://hook.eu1.make.com/mf0c5znqlb3ma67g49scxwms8c9cyo4m';
+
+    // ── Init on load ──────────────────────────────────────────────
+    window.addEventListener('DOMContentLoaded', () => {
+        const cfg = getSavedConfig();
+        if (cfg.publicKey)  document.getElementById('ejs-public-key').value  = cfg.publicKey;
+        if (cfg.serviceId)  document.getElementById('ejs-service-id').value  = cfg.serviceId;
+        if (cfg.templateId) document.getElementById('ejs-template-id').value = cfg.templateId;
+        if (cfg.publicKey)  emailjs.init(cfg.publicKey);
+        document.getElementById('sms-webhook-url').value = localStorage.getItem('sms_webhook') || MAKE_WEBHOOK;
+    });
+
+    // ── Config helpers ────────────────────────────────────────────
+    function getSavedConfig() {
+        return {
+            publicKey:  localStorage.getItem('ejs_public_key')  || '',
+            serviceId:  localStorage.getItem('ejs_service_id')  || '',
+            templateId: localStorage.getItem('ejs_template_id') || ''
+        };
+    }
+
+    function saveEmailConfig() {
+        localStorage.setItem('ejs_public_key',  document.getElementById('ejs-public-key').value.trim());
+        localStorage.setItem('ejs_service_id',  document.getElementById('ejs-service-id').value.trim());
+        localStorage.setItem('ejs_template_id', document.getElementById('ejs-template-id').value.trim());
+        emailjs.init(document.getElementById('ejs-public-key').value.trim());
+        const msg = document.getElementById('config-saved-msg');
+        msg.style.display = 'inline';
+        setTimeout(() => msg.style.display = 'none', 2500);
+    }
+
+    function saveSmsConfig() {
+        localStorage.setItem('sms_webhook', document.getElementById('sms-webhook-url').value.trim());
+        const msg = document.getElementById('sms-config-saved-msg');
+        msg.style.display = 'inline';
+        setTimeout(() => msg.style.display = 'none', 2500);
+    }
+
+    function getSmsWebhook() {
+        return localStorage.getItem('sms_webhook') || MAKE_WEBHOOK;
+    }
+
+    // ── UI helper ─────────────────────────────────────────────────
+    function showStatus(message, type) {
+        const el = document.getElementById('status-msg');
+        el.textContent = message;
+        el.style.display = 'block';
+        el.style.background = type === 'success' ? '#d4edda' : '#fff3cd';
+        el.style.color      = type === 'success' ? '#155724' : '#856404';
+        el.style.border     = type === 'success' ? '1px solid #c3e6cb' : '1px solid #ffeeba';
+        setTimeout(() => el.style.display = 'none', 6000);
+    }
+
+    // ── Form data ─────────────────────────────────────────────────
+    function getFormData() {
+        return {
+            category: document.getElementById('notif-category').value.trim(),
+            subject:  document.getElementById('notif-subject').value.trim(),
+            body:     document.getElementById('notif-body').value.trim(),
+            time:     new Date().toLocaleString()
+        };
+    }
+
+    function getEmails() {
+        return document.getElementById('notif-recipients').value.trim()
+            .split(',').map(e => e.trim()).filter(Boolean);
+    }
+
+    function getPhones() {
+        return document.getElementById('notif-phones').value.trim()
+            .split(',').map(p => p.trim()).filter(Boolean);
+    }
+
+    function saveToPage(data) {
+        let list = JSON.parse(localStorage.getItem('adminNotifs')) || [];
+        list.unshift(data);
+        localStorage.setItem('adminNotifs', JSON.stringify(list));
+    }
+
+    // ── Email sender ──────────────────────────────────────────────
+    async function sendEmailsToRecipients(data, recipients) {
+        const cfg = getSavedConfig();
+        if (!cfg.publicKey || !cfg.serviceId || !cfg.templateId) {
+            showStatus('⚠️ EmailJS not configured. Open the config panel to set it up.', 'warning');
+            return false;
+        }
+        showStatus('📤 Sending emails...', 'warning');
+        const results = await Promise.allSettled(
+            recipients.map(email =>
+                emailjs.send(cfg.serviceId, cfg.templateId, {
+                    to_email: email,
+                    category: data.category || 'NOTIFICATION',
+                    subject:  data.subject,
+                    body:     data.body,
+                    time:     data.time
+                })
+            )
+        );
+        const failed = results.filter(r => r.status === 'rejected').length;
+        if (failed === 0) {
+            showStatus(`✅ Email sent to ${recipients.length} recipient(s)!`, 'success');
+        } else {
+            showStatus(`⚠️ ${failed} of ${recipients.length} email(s) failed. Check your EmailJS config.`, 'warning');
+        }
+        return failed === 0;
+    }
+
+    // ── SMS sender ────────────────────────────────────────────────
+    async function sendSmsToRecipients(data, phones) {
+        const webhookUrl = getSmsWebhook();
+        showStatus('📱 Sending SMS...', 'warning');
+        const message = `[${data.category || 'ACTIEF'}] ${data.subject}\n${data.body}`;
+        const results = await Promise.allSettled(
+            phones.map(number =>
+                fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ number, message })
+                })
+            )
+        );
+        const failed = results.filter(r => r.status === 'rejected').length;
+        if (failed === 0) {
+            showStatus(`✅ SMS sent to ${phones.length} recipient(s)!`, 'success');
+        } else {
+            showStatus(`⚠️ ${failed} of ${phones.length} SMS failed. Check your Make.com scenario.`, 'warning');
+        }
+        return failed === 0;
+    }
+
+    // ── Button handlers ───────────────────────────────────────────
+    function postToPage() {
+        const data = getFormData();
+        if (!data.subject || !data.body) { alert("Please fill in the Subject and Message."); return; }
+        saveToPage(data);
+        showStatus('🔔 Posted to Notifications Page! Refresh the page to see it.', 'success');
+    }
+
+    async function sendEmailOnly() {
+        const data = getFormData();
+        if (!data.subject || !data.body) { alert("Please fill in the Subject and Message."); return; }
+        const emails = getEmails();
+        if (!emails.length) { alert("Please enter at least one email recipient."); return; }
+        await sendEmailsToRecipients(data, emails);
+    }
+
+    async function postAndEmail() {
+        const data = getFormData();
+        if (!data.subject || !data.body) { alert("Please fill in the Subject and Message."); return; }
+        const emails = getEmails();
+        if (!emails.length) { alert("Please enter at least one email recipient."); return; }
+        saveToPage(data);
+        await sendEmailsToRecipients(data, emails);
+    }
+
+    async function sendSmsOnly() {
+        const data = getFormData();
+        if (!data.subject || !data.body) { alert("Please fill in the Subject and Message."); return; }
+        const phones = getPhones();
+        if (!phones.length) { alert("Please enter at least one phone number."); return; }
+        await sendSmsToRecipients(data, phones);
+    }
+
+    async function postAndSms() {
+        const data = getFormData();
+        if (!data.subject || !data.body) { alert("Please fill in the Subject and Message."); return; }
+        const phones = getPhones();
+        if (!phones.length) { alert("Please enter at least one phone number."); return; }
+        saveToPage(data);
+        await sendSmsToRecipients(data, phones);
+    }
+
+    async function sendAll() {
+        const data = getFormData();
+        if (!data.subject || !data.body) { alert("Please fill in the Subject and Message."); return; }
+        saveToPage(data);
+        const emails = getEmails();
+        const phones = getPhones();
+        const tasks = [];
+        if (emails.length) tasks.push(sendEmailsToRecipients(data, emails));
+        if (phones.length) tasks.push(sendSmsToRecipients(data, phones));
+        if (!tasks.length) { showStatus('🔔 Posted to page! No email/SMS recipients entered.', 'success'); return; }
+        await Promise.all(tasks);
+        showStatus('🚀 Posted to page + email + SMS all sent!', 'success');
+    }
+
+    function clearAll() {
+        if (confirm("Are you sure you want to delete all test notifications?")) {
+            localStorage.removeItem('adminNotifs');
+            showStatus('🗑️ All test notifications cleared.', 'success');
+            setTimeout(() => location.reload(), 1200);
+        }
+    }
+</script>
+</body>
+</html>
